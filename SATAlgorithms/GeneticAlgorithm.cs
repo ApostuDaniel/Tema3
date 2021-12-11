@@ -39,13 +39,14 @@ namespace SATAlgorithms
         }
 
         public GeneticAlgorithm() : this(1000, 100) { }
-        public int GetTruthValues(CNFSATProblem problemInstance, double selectPresure, double mutationProb, double crossProb, out double satisfiabilityProportion)
+        public int GetTruthValues(CNFSATProblem problemInstance, double selectPresure, double mutationProb, double crossProb, double elitism, out double satisfiabilityProportion)
         {
             rand.NextDouble();
             int limit = 100;
             int t = 0;
             double bestSolution = 0;
             int generationFound = 0;
+            int selectedForElitism = (int)elitism * popSize;
 
             Utils.GeneratePopulation(population, problemInstance.VariableCount, rand);
 
@@ -55,10 +56,10 @@ namespace SATAlgorithms
             {
                 t++;
 
-                Selection(selectPresure, problemInstance.ClausesCount);
+                Selection(selectPresure, problemInstance.ClausesCount, selectedForElitism);
 
                 //Mutate(mutationProb);
-                MultiBitMutate(problemInstance);
+                MultiBitMutate(problemInstance, selectedForElitism);
 
                 Crossover(crossProb);
 
@@ -90,7 +91,7 @@ namespace SATAlgorithms
             }
         }
 
-        private void Selection(double selectPressure, double maxClauses)
+        private void Selection(double selectPressure, double maxClauses, int selectedForElitism)
         {
 
             F.Clear();
@@ -126,7 +127,14 @@ namespace SATAlgorithms
 
             newPopulation.Clear();
 
-            for (int i = 0; i < popSize; i++)
+            //Adding Elitism
+            Utils.QuickSortTwoLists(population, populationEvaluations, 0, population.Count - 1);
+            for (int i = 0; i < selectedForElitism; i++)
+            {
+                newPopulation.Add(population[i]);
+            }
+
+            for (int i = 0; i < popSize - selectedForElitism; i++)
             {
                 double r = rand.NextDouble();
                 bool chosen = false;
@@ -142,6 +150,7 @@ namespace SATAlgorithms
                 }
                 if (!chosen) newPopulation.Add(population[^1]);
             }
+            //end, to remove elitism look in the sequnece between comments
 
             population.Clear();
             population.AddRange(newPopulation);
@@ -237,10 +246,10 @@ namespace SATAlgorithms
             }
         }
 
-        private void MultiBitMutate(CNFSATProblem problemInstance)
+        private void MultiBitMutate(CNFSATProblem problemInstance, int selectedForElitism)
         {
             int arrSize = population[0].Length;
-            for (int i = 0; i < population.Count; i++)
+            for (int i = selectedForElitism; i < population.Count; i++)
             {
                 double initialEval = populationEvaluations[i];
                 for (int j = 0; j < arrSize; j++)
@@ -249,7 +258,6 @@ namespace SATAlgorithms
                     double currentEval = problemInstance.Evaluate(population[i]);
 
                     if (initialEval < currentEval) initialEval = currentEval;
-
                     else population[i][j] = !population[i][j];                 
                 }
             }

@@ -66,11 +66,11 @@ namespace SATProblem
         {
             int satisfiedClauses = 0;
 
-            foreach(int[] clause in clauses)
+            foreach (int[] clause in clauses)
             {
-                foreach(int variable in clause)
+                foreach (int variable in clause)
                 {
-                    if((variable > 0 && truthValAssignmets[variable - 1])||(variable < 0 && !truthValAssignmets[-(variable) - 1]))
+                    if ((variable > 0 && truthValAssignmets[variable - 1]) || (variable < 0 && !truthValAssignmets[-(variable) - 1]))
                     {
                         satisfiedClauses++;
                         break;
