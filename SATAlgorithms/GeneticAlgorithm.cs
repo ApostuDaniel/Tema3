@@ -42,7 +42,7 @@ namespace SATAlgorithms
         public int GetTruthValues(CNFSATProblem problemInstance, double selectPresure, double mutationProb, double crossProb, out double satisfiabilityProportion)
         {
             rand.NextDouble();
-
+            int limit = 100;
             int t = 0;
             double bestSolution = 0;
             int generationFound = 0;
@@ -55,9 +55,10 @@ namespace SATAlgorithms
             {
                 t++;
 
-                Selection(selectPresure);
+                Selection(selectPresure, problemInstance.ClausesCount);
 
-                Mutate(mutationProb);
+                //Mutate(mutationProb);
+                MultiBitMutate(problemInstance);
 
                 Crossover(crossProb);
 
@@ -70,6 +71,7 @@ namespace SATAlgorithms
                     bestSolution = bestInGeneration;
                     generationFound = t;
                 }
+                else if (t - generationFound > limit) break;   
             }
 
             satisfiabilityProportion = bestSolution;
@@ -88,17 +90,15 @@ namespace SATAlgorithms
             }
         }
 
-        private void Selection(double selectPressure)
+        private void Selection(double selectPressure, double maxClauses)
         {
-            double maxEval = populationEvaluations.Max();
-            double minEval = populationEvaluations.Min();
 
             F.Clear();
             F.Capacity = population.Capacity;
 
             for (int i = 0; i < populationEvaluations.Count; i++)
             {
-                F.Add(Math.Pow(populationEvaluations[i] + double.Epsilon, -selectPressure));
+                F.Add(Math.Pow(populationEvaluations[i]/maxClauses + double.Epsilon + 1, selectPressure));
             }
 
             double fSum = F.Sum();
@@ -164,7 +164,8 @@ namespace SATAlgorithms
             {
                 if (crossAndProb[i + 1].prob < crossProb || rand.NextDouble() < 0.5)
                 {
-                    var temp = CrossoverGene(crossAndProb[i].indv, crossAndProb[i + 1].indv);
+                    //var temp = CrossoverGene(crossAndProb[i].indv, crossAndProb[i + 1].indv);
+                    var temp = TwoPointCrossoverGene(crossAndProb[i].indv, crossAndProb[i + 1].indv);
                     population.Add(temp.Item1);
                     population.Add(temp.Item2);
                 }
@@ -187,6 +188,40 @@ namespace SATAlgorithms
             return (child1, child2);
         }
 
+        private (BitArray, BitArray) TwoPointCrossoverGene(BitArray parent1, BitArray parent2)
+        {
+            int crossPos = 1 + rand.Next(parent1.Length - 2);
+            int crossPos2;
+
+            do
+            {
+                crossPos2 = 1 + rand.Next(parent1.Length - 2);
+            } while (Math.Abs(crossPos-crossPos2) <= 1);
+
+            if (crossPos2 < crossPos)
+            {
+                var temp = crossPos2;
+                crossPos2 = crossPos;
+                crossPos = temp;
+            }
+
+            var child1 = new BitArray(parent1);
+            var child2 = new BitArray(parent2);
+
+            for (int i = 0; i < crossPos; i++)
+            {
+                child1[i] = parent2[i];
+                child2[i] = parent1[i];
+            }
+            for (int i = crossPos2; i < parent1.Length; i++)
+            {
+                child1[i] = parent2[i];
+                child2[i] = parent1[i];
+            }
+
+            return (child1, child2);
+        }
+
         private void Mutate(double mutationProb)
         {
             int arrSize = population[0].Length;
@@ -198,6 +233,24 @@ namespace SATAlgorithms
                     {
                         population[i][j] = !population[i][j];
                     }
+                }
+            }
+        }
+
+        private void MultiBitMutate(CNFSATProblem problemInstance)
+        {
+            int arrSize = population[0].Length;
+            for (int i = 0; i < population.Count; i++)
+            {
+                double initialEval = populationEvaluations[i];
+                for (int j = 0; j < arrSize; j++)
+                {
+                    population[i][j] = !population[i][j];
+                    double currentEval = problemInstance.Evaluate(population[i]);
+
+                    if (initialEval < currentEval) initialEval = currentEval;
+
+                    else population[i][j] = !population[i][j];                 
                 }
             }
         }

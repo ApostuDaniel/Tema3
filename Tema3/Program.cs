@@ -10,19 +10,19 @@ namespace Tema3
         static void Main(string[] args)
         {
 
-            var problemInstance = new CNFSATProblem(@"F:\C#\Facultate\AlgGenetici\Tema3\Data\harderInstances.txt");
+            var problemInstance = new CNFSATProblem(@"F:\C#\Facultate\AlgGenetici\Tema3\Data\satisfiableHardInstance.txt");
             var algorithm = new GeneticAlgorithm();
-            TestGA(problemInstance, algorithm, 10, 0.5, 0.1, 0.6);
-            for (int i = 1; i < 6; i++)
-            {
-                for (double j = 0.01; j < 0.25; j+=0.05)
-                {
-                    for (double k = 0.1; k < 0.7; k+=0.1)
-                    {
-                        TestGA(problemInstance, algorithm, 10, i, j, k);
-                    }
-                }
-            }
+            TestGA(problemInstance, algorithm, 1,1,0.1,0.5);
+            //for (int i = 1; i < 6; i++)
+            //{
+            //    for (double j = 0.01; j < 0.25; j+=0.05)
+            //    {
+            //        for (double k = 0.1; k < 0.7; k+=0.1)
+            //        {
+            //            TestGA(problemInstance, algorithm, 10, i, j, k);
+            //        }
+            //    }
+            //}
         }
 
         public static void TestGA(CNFSATProblem problemInstance, GeneticAlgorithm alg, int repeats, double selectionPressure, double mutationStrength, double crossoverProbability)
