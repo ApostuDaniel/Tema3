@@ -11,7 +11,15 @@ namespace SATProblem
         public int VariableCount { get;}
         public int ClausesCount { get; }
         public string FileName { get; }
-        private List<int[]> clauses = new List<int[]>();
+        public List<int[]> clauses = new List<int[]>();
+
+        public CNFSATProblem(CNFSATProblem problem)
+        {
+            this.ClausesCount = problem.ClausesCount;
+            this.VariableCount = problem.VariableCount;
+            this.clauses.AddRange(clauses);
+            this.FileName = problem.FileName;
+        }
 
         public CNFSATProblem(string filePath)
         {

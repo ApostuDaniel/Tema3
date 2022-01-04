@@ -19,8 +19,8 @@ namespace SATAlgorithms
         private List<double> Fn;
         private List<double> SelectionProb;
         private List<(BitArray indv, double prob)> crossAndProb;
-        private int maxT;
-        private int popSize;
+        public int maxT;
+        public int popSize;
 
         public GeneticAlgorithm(int maxt, int popsize)
         {
@@ -39,13 +39,14 @@ namespace SATAlgorithms
         }
 
         public GeneticAlgorithm() : this(1000, 100) { }
-        public int GetTruthValues(CNFSATProblem problemInstance, double selectPresure, double mutationProb, double crossProb, double elitism, out double satisfiabilityProportion)
+        public BitArray GetTruthValues(CNFSATProblem problemInstance, double selectPresure, double mutationProb, double crossProb, double elitism, out double satisfiabilityProportion, out double generationFound)
         {
             rand.NextDouble();
             int limit = 100;
             int t = 0;
             double bestSolution = 0;
-            int generationFound = 0;
+            generationFound = 0;
+            BitArray bestChromosome = new(popSize);
             int selectedForElitism = (int)elitism * popSize;
 
             Utils.GeneratePopulation(population, problemInstance.VariableCount, rand);
@@ -59,7 +60,8 @@ namespace SATAlgorithms
                 Selection(selectPresure, problemInstance.ClausesCount, selectedForElitism);
 
                 //Mutate(mutationProb);
-                MultiBitMutate(problemInstance, selectedForElitism);
+                //MultiBitMutate(problemInstance, selectedForElitism);
+                MultiBitAllowWorse(problemInstance, selectedForElitism, mutationProb);
 
                 Crossover(crossProb);
 
@@ -71,13 +73,20 @@ namespace SATAlgorithms
                 {
                     bestSolution = bestInGeneration;
                     generationFound = t;
+
+                    //int bestSolIndex= populationEvaluations.IndexOf(bestSolution);
+
+                    //for (int i = 0; i < population[bestSolIndex].Count; i++)
+                    //{
+                    //    bestChromosome[i] = population[bestSolIndex][i];
+                    //}
                 }
                 else if (t - generationFound > limit) break;   
             }
 
             satisfiabilityProportion = bestSolution;
 
-            return generationFound;
+            return bestChromosome;
         }
 
         private void EvaluatePop(CNFSATProblem problemInstance)
@@ -169,7 +178,7 @@ namespace SATAlgorithms
             crossAndProb.Sort((x, y) => x.prob.CompareTo(y.prob));
 
             int i = 0;
-            while (crossAndProb[i].prob < crossProb)
+            while (i + 1 < crossAndProb.Count && crossAndProb[i].prob < crossProb)
             {
                 if (crossAndProb[i + 1].prob < crossProb || rand.NextDouble() < 0.5)
                 {
@@ -259,6 +268,31 @@ namespace SATAlgorithms
 
                     if (initialEval < currentEval) initialEval = currentEval;
                     else population[i][j] = !population[i][j];                 
+                }
+            }
+        }
+        private void MultiBitAllowWorse(CNFSATProblem problemInstance, int selectedForElitism, double mutationProb)
+        {
+            int arrSize = population[0].Length;
+            for (int i = selectedForElitism; i < population.Count; i++)
+            {
+                double initialEval = populationEvaluations[i];
+                for (int j = 0; j < arrSize; j++)
+                {
+                    population[i][j] = !population[i][j];
+                    double currentEval = problemInstance.Evaluate(population[i]);
+
+                    if (initialEval < currentEval) initialEval = currentEval;
+                    else if(initialEval == currentEval)
+                    {
+                        if(rand.NextDouble() < 0.5) initialEval = currentEval;
+                        else population[i][j] = !population[i][j];
+                    }
+                    else
+                    {
+                        if(rand.NextDouble() < mutationProb) initialEval = currentEval;
+                        else population[i][j] = !population[i][j];
+                    }
                 }
             }
         }
