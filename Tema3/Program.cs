@@ -14,49 +14,12 @@ namespace Tema3
         static void Main(string[] args)
         {
             Console.WriteLine("Program started");
-            var testInstaces = Directory.EnumerateFiles(@"F:\C#\Facultate\AlgGenetici\Tema3\Data");
-            //Parallel.ForEach(testInstaces, instance =>
-            //{
-            //    //var algorithm = new GeneticAlgorithm();
-            //    //var problemInstance = new CNFSATProblem(instance);
-            //    //TestGA(problemInstance, algorithm, 30, 0.5, 0, 0.9, 0.5);
-            //    //TestGA(problemInstance, algorithm, 10, 1, 0.1, 0.6, 0.05);
-            //    //TestSA(problemInstance, 30);
-            //});
-
-            int i = 0;
+           
             var algorithm = new GeneticAlgorithm();
-            foreach(var instance in testInstaces)
-            {
-                if (i > 5) i++;
-                else
-                {
-                    var problemInstance = new CNFSATProblem(instance);
-                    TestGA(problemInstance, algorithm, 30, 1, 0.001, 0.6, 0.5);
-                    i++;
-                }
 
-            }
-            
-            
-            //TestGA(problemInstance, algorithm, 10, 1, 0.009, 0.6, 0.05);
-            
-            //TestGA(problemInstance, algorithm, 10, 1, 0.01, 0.7, 0.05);
+            var problemInstance = new CNFSATProblem(@"F:\C#\Facultate\AlgGenetici\Tema3\Data\uf200-0100.txt");
+            TestGA(problemInstance, algorithm, 30, 1, 0.001, 0.6, 0.5);
 
-            //var watch = new Stopwatch();
-            //double evalSum = 0;
-            //double timeSum = 0;
-            //for (int i = 0; i < 5; i++)
-            //{
-            //    watch.Start();
-            //    SimulatedAnnealing.FindEval(problemInstance, out double evaluation);
-            //    watch.Stop();
-            //    evalSum += evaluation;
-            //    timeSum += watch.ElapsedMilliseconds;
-            //    Console.WriteLine($"Evaluation: {evaluation}, Actual: {problemInstance.ClausesCount}, Time: {watch.ElapsedMilliseconds} ms");
-            //    watch.Reset();
-            //}
-            //Console.WriteLine($"\n Average: Evaluation: {evalSum/5}, Actual: {problemInstance.ClausesCount}, Time: {timeSum/5} ms");
 
             Console.WriteLine("\nDone, press any key to end program");
             Console.ReadLine();

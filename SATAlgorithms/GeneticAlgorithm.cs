@@ -39,16 +39,14 @@ namespace SATAlgorithms
         }
 
         public GeneticAlgorithm() : this(1000, 100) { }
-        public BitArray GetTruthValues(CNFSATProblem problemInstance, double selectPresure, double mutationProb, double crossProb, double elitism, out double satisfiabilityProportion, out double generationFound)
+        public void GetTruthValues(CNFSATProblem problemInstance, double selectPresure, double mutationProb, double crossProb, double elitism, out double satisfiabilityProportion, out double generationFound)
         {
             rand.NextDouble();
             int limit = 100;
             int t = 0;
             double bestSolution = 0;
             generationFound = 0;
-            BitArray bestChromosome = new(popSize);
             int selectedForElitism = (int)elitism * popSize;
-
             Utils.GeneratePopulation(population, problemInstance.VariableCount, rand);
 
             EvaluatePop(problemInstance);
@@ -56,15 +54,9 @@ namespace SATAlgorithms
             while (t < maxT)
             {
                 t++;
-
                 Selection(selectPresure, problemInstance.ClausesCount, selectedForElitism);
-
-                //Mutate(mutationProb);
-                //MultiBitMutate(problemInstance, selectedForElitism);
                 MultiBitAllowWorse(problemInstance, selectedForElitism, mutationProb);
-
                 Crossover(crossProb);
-
                 EvaluatePop(problemInstance);
 
                 double bestInGeneration = populationEvaluations.Max();
@@ -73,20 +65,11 @@ namespace SATAlgorithms
                 {
                     bestSolution = bestInGeneration;
                     generationFound = t;
-
-                    //int bestSolIndex= populationEvaluations.IndexOf(bestSolution);
-
-                    //for (int i = 0; i < population[bestSolIndex].Count; i++)
-                    //{
-                    //    bestChromosome[i] = population[bestSolIndex][i];
-                    //}
                 }
                 else if (t - generationFound > limit) break;   
             }
 
             satisfiabilityProportion = bestSolution;
-
-            return bestChromosome;
         }
 
         private void EvaluatePop(CNFSATProblem problemInstance)
@@ -182,7 +165,6 @@ namespace SATAlgorithms
             {
                 if (crossAndProb[i + 1].prob < crossProb || rand.NextDouble() < 0.5)
                 {
-                    //var temp = CrossoverGene(crossAndProb[i].indv, crossAndProb[i + 1].indv);
                     var temp = TwoPointCrossoverGene(crossAndProb[i].indv, crossAndProb[i + 1].indv);
                     population.Add(temp.Item1);
                     population.Add(temp.Item2);
